@@ -1,5 +1,5 @@
 locals {
-    site_locations_csv = csvdecode(file("${path.module}/${var.csv_file_path}"))
+    site_locations_csv = csvdecode(file("${var.csv_file_path}"))
 }
 
 data "cato_siteLocation" "site_locations" {

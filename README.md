@@ -36,12 +36,18 @@ variable "csv_file_path" {
 ## Proviers and Resources for Bulk Run
 
 ```hcl
+provider "cato" {
+  baseurl    = "https://api.catonetworks.com/api/v1/graphql2"
+  token      = "xxxxxxxxxxxxxx"
+  account_id = "xxxxxxxxxxxxxx"
+}
 
 module "site_location" {
   source = "catonetworks/sitelocation/cato"
   csv_file_path = var.csv_file_path
 }
 
+## Add outputs to see siteLocation results for reference
 output "invalid_sites" {
   value = module.site_location.invalid_sites
 }
@@ -66,7 +72,26 @@ output "site_locations" {
   }
 }
 
-terraform apply
-terraform show
+# Use the results from the siteLocation module as inputs when creating a site
+resource "cato_socket_site" "aws-site" {
+  name            = "Example AWS Site"
+  description     = "Site description"
+  site_type       = "CLOUD_DC"
+  connection_type = "SOCKET_AWS1500"
+
+  native_range = {
+    native_network_range = "192.169.35.0/24"
+    local_ip             = "192.169.35.5"
+  }
+
+  site_location = {
+    city         = lookup(module.site_location.valid_sites["site2"].locations[0], "city", null)
+    country_code = lookup(module.site_location.valid_sites["site2"].locations[0], "country_code", null)
+    state_code   = lookup(module.site_location.valid_sites["site2"].locations[0], "state_code", null)
+    timezone     = lookup(module.site_location.valid_sites["site2"].locations[0], "timezone", null)[0]
+  }
+}
+
+
 ```
 
