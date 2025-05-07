@@ -2,6 +2,9 @@
 
 Terraform module that takes a path to a csv file as an input, and validates each city, state (if applicable), and country against the Cato siteLocation database and provides outputs to reference dynamically to create sites in bulk. 
 
+## NOTE
+For csv files that include entries with unicode characters, use a text editor like [BBEdit](https://www.barebones.com/products/bbedit/download.html) or [Notepad++](https://notepad-plus-plus.org/) to change the encoding of the csv file to utf8 without utf8 BOM for terraform to read the file correctly. 
+
 <details>
 <summary>Example CSV file format</summary>
 
@@ -91,7 +94,19 @@ resource "cato_socket_site" "aws-site" {
     timezone     = lookup(module.site_location.valid_sites["site2"].locations[0], "timezone", null)[0]
   }
 }
-
-
 ```
 
+## Cato CLI for site location quick search
+
+You can also use the [Cato CLI](https://github.com/catonetworks/cato-cli) to quickly lookup site location sytax searching for for city, stateName, and countryName.
+
+```bash
+$ pip3 install catocli
+$ export CATO_TOKEN="your-api-token-here"
+$ export CATO_ACCOUNT_ID="your-account-id"
+$ catocli query siteLocation -h
+
+$ catocli query siteLocation '{"filters":[{"search": "San Diego","field":"city","operation":"exact"}]}' -p
+
+$ catocli query siteLocation '{"filters":[{"search": "New York City","field":"city","operation":"startsWith"},{"search": "New York","field":"stateName","operation":"endsWith"},{"search": "United States","field":"countryName","operation":"contains"}}' -p
+```
